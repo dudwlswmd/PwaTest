@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Drag and Drop Example</title>
+  </head>
+  <body>
+    <form>
+      <input type="text" />
+      <button type="submit">Add Todo</button>
+    </form>
+    <div class="container">
+      <div class="list" id="todo">Todo</div>
+      <div class="list" id="doing">Doing</div>
+      <div class="list" id="done">Done</div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"></script>
+    <script>
+        // form 요소를 선택하여 form 변수에 할당
+        const form = document.querySelector('form');
+
+        // .list 클래스를 가진 모든 요소를 선택하여 boxes 변수에 할당
+        const boxes = document.querySelectorAll('.list');
+
+        let from, to // start, end id(.list.id)
+
+        let todoList = []
+        let doingList = []
+        let doneList = []
+
+        // todo, doing, done을 key로 하는 객체 lists
+        const lists = {
+            todo : todoList,
+            doing : doingList,
+            done : doneList
+        }
+
+        // 드래그 오버 이벤트 핸들러
+        const dragOver = (event) => {
+            event.preventDefault();
+            const targetId = event.target.id;
+            const listIds = Object.keys(lists)
+
+            if(listIds.includes(targetId)){
+                to = targetId
+            }
+            console.log(to)
+        }
+
+        // 리스트와 아이템을 받아 DOM에 새로운 요소를 생성하는 함수
+        const createElement =(listId,item)=>{
+            // listId로 DOM에서 리스트 요소를 선택하여 list 변수에 할당
+            const list = document.querySelector(`#${listId}`)
+            const itemNew = document.createElement('div')
+
+            // 드래그 시작 이벤트 핸들러
+            function dragStart(event){
+                console.log(event.target.parentElement.id)
+                from = event.target.parentElement.id //item dragg start point
+            }
+
+            // 드래그 종료 이벤트 핸들러
+            function dragEnd(event){
+                console.log('end',event)
+                const {id} = event.target;
+                event.target.remove();
+                
+                lists[from] = lists[listId].filter((item)=>{
+                    if(item.id !== id){
+                        return item
+                    } else {
+                        createElement(to, item);
+                    }
+                })
+            }
+
+            // 아이템 요소의 id, class, innerText를 할당하고 draggable 속성 추가
+            itemNew.id = item.id;
+            itemNew.className = 'item'
+            itemNew.innerText = item.text
+            itemNew.draggable='true'
+
+            // 드래그 시작, 종료 이벤트 핸들러 추가
+            itemNew.addEventListener('dragstart', dragStart)
+            itemNew.addEventListener('dragend', dragEnd)
+            
+            // 리스트에 새로운 아이템 요소 추가
+            list.append(itemNew)
+
+            // 리스트 배열에 새로운 아이템 추가
+            lists[listId].push(item)
+            console.log(lists[listId])
+        }
+
+        // 새로운 할일을 추가하는 함수
+        const createTodo = (event) => {
+            event.preventDefault();
+            const input = document.querySelector('input');
+            const id = uuidv4(); //uuid 라이브러리 연결
+            const newTodo = {
+                id,
+                text:input.value
+            }
+            createElement('todo',newTodo);
+
+            // 입력창 비우기
+            input.value = '';
+        }
+
+        // form 요소에 submit 이벤트 리스너 추가
+        form.addEventListener('submit',createTodo);
+
+        // 모든 리스트 박스 요소에 dragover 이벤트 리스너 추가
+        boxes.forEach((box)=>{
+            box.addEventListener('dragover', dragOver)
+        })
+        /*
+        HTML 문서의 form 요소와 class가 'list'인 요소들을 JavaScript로 선택하여 변수에 할당합니다.
+
+        todo, doing, done 세 가지 리스트 배열과, 리스트 객체를 생성하고, 초기값으로 빈 배열을 할당합니다.
+
+        Drag and Drop 기능에서 이벤트 핸들러 함수를 만들기 위한 dragOver, createElement 함수를 생성합니다.
+
+        dragOver 함수는 Drag and Drop 기능에서 발생하는 dragover 이벤트를 처리하며, 드롭 대상 요소의 ID 값을 확인하고 to 변수에 할당합니다.
+
+        createElement 함수는 새로운 리스트 아이템 요소를 만드는 함수로, 리스트 ID와 아이템 객체를 인자로 받아 사용합니다. 함수 내부에서는 새로운 itemNew 요소를 생성하고 드래그 가능한 요소로 설정한 뒤, dragStart, dragEnd 이벤트를 추가합니다.
+
+        dragStart 함수는 dragstart 이벤트를 처리하며, 드래그 시작한 itemNew 요소가 속한 리스트의 ID 값을 from 변수에 할당합니다.
+
+        dragEnd 함수는 dragend 이벤트를 처리하며, 드롭한 itemNew 요소의 ID 값을 확인하고 해당 요소를 삭제합니다. 그리고, from 변수의 값에 따라 해당 리스트의 아이템 배열을 수정하거나, 다른 리스트로 이동시킵니다.
+
+        form 요소에서 submit 이벤트가 발생하면 createTodo 함수를 호출하여 새로운 할 일 아이템을 생성하고, createElement 함수를 호출하여 todo 리스트에 새로운 아이템을 추가합니다.
+
+        각각의 list 요소들에 대해 dragover 이벤트를 처리하도록 이벤트 리스너를 추가합니다.
+        */
+    </script>
+  </body>
+</html>
